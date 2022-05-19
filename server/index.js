@@ -9,7 +9,7 @@ const {
 } = require("./controllers/inventoriesController");
 require("dotenv/config");
 
-const port = 3000;
+const port = 3001;
 
 // Middleware
 app.use(cors());
