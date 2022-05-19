@@ -26,7 +26,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// Cron job to delete inventoryies that have been 'deleted' for more than or up to 30 days
+// Cron job to delete inventoryies that have been 'deleted' for up to 3 days at midnight
 const job = schedule.scheduleJob("0 0 * * *", async () => {
   return deleteInventoryForever();
 });

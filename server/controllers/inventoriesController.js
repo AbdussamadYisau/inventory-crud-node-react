@@ -117,14 +117,14 @@ exports.updateInventory = async (req, res) => {
   }
 };
 
-// Cron Job Function to Delete Inventories that have been tagged deleted for more than or up to 30 days
+// Cron Job Function to Delete Inventories that have been tagged deleted for more than or up to 3 days
 exports.deleteInventoryForever = async () => {
-  let fromDate = new Date(Date.now() - 1000 * 60 * 60 * 24 * 30);
+  let fromDate = new Date(Date.now() - 1000 * 60 * 60 * 24 * 3);
 
   await inventoryModel.deleteMany({
     category: "Deleted",
     updatedAt: {
-      $gte: fromDate,
+      $lt: fromDate.toISOString(),
     },
   }),
     function (err) {
@@ -159,7 +159,7 @@ exports.addToDeletedInventory = async (req, res) => {
     return res.status(200).json({
       success: true,
       data: {_id, name, description, price, category, quantity, deleteComment},
-      message: "Inventory added to deleted inventory.",
+      message: "Inventory item added to deleted.",
       count: 1,
     });
   } catch (err) {
@@ -197,7 +197,7 @@ exports.restoreInventory = async (req, res) => {
     return res.status(200).json({
       success: true,
       data: {_id, name, description, price, category, quantity, deleteComment},
-      message: "Inventory restored successfully.",
+      message: "Inventory item restored successfully.",
       count: 1,
     });
   } catch (err) {

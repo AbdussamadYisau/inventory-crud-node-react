@@ -141,13 +141,13 @@ function App() {
                         padding: "10px",
                         marginTop: "10px",
                         display: "flex",
-                        width: "300px",
+                        width: "500px",
                       }}
                     >
                       <div className="Column">
                         <p> Name: {item.name}</p>
                         <p> Description : {item.description}</p>
-                        <p> Price : {item.price}</p>
+                        <p> Price : {item.price} &#8358;</p>
                         <p> Quantity: {item.quantity}</p>
                       </div>
 
@@ -192,13 +192,13 @@ function App() {
                         padding: "10px",
                         marginTop: "10px",
                         display: "flex",
-                        width: "300px",
+                        width: "500px",
                       }}
                     >
                       <div className="Column">
                         <p> Name: {item.name}</p>
                         <p> Description : {item.description}</p>
-                        <p> Price : {item.price}</p>
+                        <p> Price : {item.price} &#8358;</p>
                         <p> Quantity: {item.quantity}</p>
                         <p>Delete Comments: {item.deleteComment}</p>
                       </div>
