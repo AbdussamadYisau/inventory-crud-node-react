@@ -8,12 +8,23 @@ const {
   deleteInventoryForever,
 } = require("./controllers/inventoriesController");
 require("dotenv/config");
+const bodyParser = require("body-parser");
 
 const port = 3001;
 
 // Middleware
-app.use(cors());
-app.use(express.json());
+// parse application/x-www-form-urlencoded
+app.use(bodyParser.urlencoded({ extended: false }))
+
+// parse application/json
+app.use(bodyParser.json())
+
+app.use((req, res, next) => {
+  res.set('Access-Control-Allow-Origin', '*');
+  res.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, Content-Length, X-Requested-With');
+  next();
+});
 
 // Cron job to delete inventoryies that have been 'deleted' for more than or up to 30 days
 const job = schedule.scheduleJob("0 0 * * *", async () => {

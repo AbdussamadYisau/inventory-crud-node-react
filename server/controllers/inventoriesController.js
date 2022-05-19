@@ -12,7 +12,6 @@ exports.getInventory = async (req, res) => {
         createdAt: 0,
         updatedAt: 0,
         __v: 0,
-        category: 0,
       });
     return res.status(200).json({
       success: true,
@@ -136,7 +135,7 @@ exports.deleteInventoryForever = async () => {
   console.log("Records Deleted Successfully");
 };
 
-// @route  GET api/addToDeletedInventory/:id
+// @route  PUT api/addToDeletedInventory/:id
 // @desc   Add inventory to deleted inventory
 // @access Public
 exports.addToDeletedInventory = async (req, res) => {
@@ -173,6 +172,44 @@ exports.addToDeletedInventory = async (req, res) => {
   }
 };
 
+
+// @route PUT api/restoreInventory/:id
+// @desc Restore inventory
+// @access Public
+exports.restoreInventory = async (req, res) => {
+  try {
+    const inventory = await inventoryModel.findByIdAndUpdate(
+      req.params.id,
+      {category: "Available"},
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
+    const {_id, name, description, price, category, quantity, deleteComment } = inventory;
+    if (!inventory) {
+      return res.status(404).json({
+        success: false,
+        message: "Inventory not found.",
+        error: "Inventory not found.",
+      });
+    }
+    return res.status(200).json({
+      success: true,
+      data: {_id, name, description, price, category, quantity, deleteComment},
+      message: "Inventory restored successfully.",
+      count: 1,
+    });
+  } catch (err) {
+    console.error(err.message);
+    return res.status(500).json({
+      success: false,
+      message: "Server Error",
+      error: err.message,
+    });
+  }
+};
+
 // @route  GET api/deletedInventory
 // @desc   Get all  deleted inventory
 // @access Public
@@ -182,9 +219,7 @@ exports.getDeletedInventory = async (req, res) => {
       .find({ category: "Deleted" })
       .select({
         createdAt: 0,
-        updatedAt: 0,
         __v: 0,
-        category: 0,
       });
     return res.status(200).json({
       success: true,

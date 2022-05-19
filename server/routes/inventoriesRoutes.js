@@ -8,6 +8,7 @@ const {
   updateInventory,
   addToDeletedInventory,
   getDeletedInventory,
+  restoreInventory
 } = require("../controllers/inventoriesController");
 const {
   validateInventories,
@@ -37,5 +38,8 @@ router.put("/api/addToDeletedInventory/:id", addToDeletedInventory);
 
 // Get deleted inventory
 router.get("/api/deletedInventory", getDeletedInventory);
+
+// Restore inventory
+router.put("/api/restore/:id", restoreInventory);
 
 module.exports = router;
