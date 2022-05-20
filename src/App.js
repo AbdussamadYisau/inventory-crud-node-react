@@ -4,13 +4,7 @@ import React from "react";
 import "./App.css";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-
-const formReducer = (state, event) => {
-  return {
-    ...state,
-    [event.name]: event.value,
-  };
-};
+import {Formik} from 'formik';
 
 function App() {
   const [mainInventoryData, setMainInventoryData] = React.useState(null);
@@ -19,14 +13,12 @@ function App() {
   const [restore, setRestore] = React.useState("");
   const [loading, setLoading] = React.useState(false);
   const [modalOpen, setIsOpen] = React.useState(false);
-  const [formData, setFormData] = React.useReducer(formReducer, {});
 
   const showModal = () => {
     setIsOpen(true);
   };
 
   const hideModal = () => {
-    
     setIsOpen(false);
   };
 
@@ -34,12 +26,6 @@ function App() {
     return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   };
 
-  const handleChange = (event) => {
-    setFormData({
-      name: event.target.name,
-      value: event.target.value,
-    });
-  };
 
   const Modal = ({ handleClose, children, title }) => {
     return (
@@ -88,37 +74,6 @@ function App() {
   }, [deleted, restore, loading]);
 
 
-
-  const handleCreate = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch(
-        `v1/api/inventory`,
-        {
-          method: "POST",
-          body: JSON.stringify({
-            name: `${formData?.name}`,
-            description: `${formData?.description}`,
-            price: `${formData?.price}`,
-            quantity: `${formData?.quantity}`
-
-          }),
-          headers: {
-            "Content-Type": "application/json",
-          },
-        },
-        {
-          mode: "cors",
-        }
-      );
-      const data = await response.json();
-
-      setLoading(false);
-    } catch (err) {
-      console.error(err.message);
-    }
-  }
-
   const handleDelete = async (id) => {
     try {
       setLoading(true);
@@ -146,7 +101,6 @@ function App() {
         pauseOnHover: true,
         draggable: true,
         progress: undefined,
-        
       });
 
       setDeleted(data.message);
@@ -208,9 +162,138 @@ function App() {
         Click to create an inventory{" "}
       </button>
       {modalOpen && (
-        <Modal handleClose={hideModal} title="Testing Microphone">
-          <p>Modal</p>
-          <p>Data</p>
+        <Modal handleClose={hideModal} title="Create An Inventory">
+          <Formik
+       initialValues={{ name: '', description: '', price: 0, quantity: 0}}
+       validate={values => {
+         const errors = {};
+         if (!values.name) {
+           errors.name = 'Required';
+         } else if (
+           !values.description
+         ) {
+           errors.description = `Description can't be blank`;
+         } else if (
+           values.price === 0
+         ) {
+          errors.price =`Price can't be 0`;
+         } else if (values.quantity === 0) {
+           errors.quantity = `Quantity can't be 0`;
+         }
+         return errors;
+       }}
+       onSubmit={ async (values, { setSubmitting }) => {
+        try {
+          setLoading(true);
+          const response = await fetch(
+            `v1/api/inventory`,
+            {
+              method: "POST",
+              body: JSON.stringify({
+                name: `${values?.name}`,
+                description: `${values?.description}`,
+                price: `${values?.price}`,
+                quantity: `${values?.quantity}`,
+              }),
+              headers: {
+                "Content-Type": "application/json",
+              },
+            },
+            {
+              mode: "cors",
+            }
+          );
+          const data = await response.json();
+          toast.success(data?.message, {
+            position: "top-right",
+            autoClose: 3000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+          });
+          setLoading(false);
+          setSubmitting(false);
+          hideModal();
+        } catch (err) {
+          console.error(err.message);
+          toast.error(err?.message, {
+            position: "top-right",
+            autoClose: 3000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+          });
+          hideModal();
+
+        }
+       }}
+     >
+       {({
+         values,
+         errors,
+         touched,
+         handleChange,
+         handleBlur,
+         handleSubmit,
+         isSubmitting,
+         /* and other goodies */
+       }) => (
+        <form style={{
+          'display':'flex',
+          'flexDirection': 'column'
+        }} onSubmit={handleSubmit}>
+          <label>Name: </label>
+          <input
+            type="text"
+            name="name"
+            onChange={handleChange}
+            onBlur={handleBlur}
+            value={values.name}
+          />
+          {errors.name && touched.name && errors.name}
+          
+          <label style={{marginTop: '10px'}} >Description: </label>
+          <input
+            type="text"
+            name="description"
+            onChange={handleChange}
+            onBlur={handleBlur}
+            value={values.description}
+          />
+          {errors.description && touched.description && errors.description}
+
+          <label style={{marginTop: '10px'}}>Price: </label>
+          <input
+            type="number"
+            name="price"
+            onChange={handleChange}
+            onBlur={handleBlur}
+            value={values.price}
+          />
+          {errors.price && touched.price && errors.price}
+
+          <label style={{marginTop: '10px'}}>Quantity: </label>
+          <input
+            type="number"
+            name="quantity"
+            onChange={handleChange}
+            onBlur={handleBlur}
+            value={values.quantity}
+          />
+          {errors.quantity && touched.quantity && errors.quantity}
+          
+          <button style={{marginTop: '10px'}} type="submit" disabled={isSubmitting}>
+            Submit
+          </button>
+        </form>
+      )}
+    </Formik>
+
+
         </Modal>
       )}
 
