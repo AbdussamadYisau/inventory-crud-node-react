@@ -17,7 +17,7 @@ function App() {
 
   const getInventory = async () => {
     try {
-      const response = await fetch("http://localhost:3001/v1/api/inventory", {
+      const response = await fetch("v1/api/inventory", {
         mode: "cors",
       });
       const json = await response.json();
@@ -31,7 +31,7 @@ function App() {
   const getDeletedInventory = async () => {
     try {
       const response = await fetch(
-        "http://localhost:3001/v1/api/deletedInventory",
+        "v1/api/deletedInventory",
         { mode: "cors" }
       );
       const json = await response.json();
@@ -54,7 +54,7 @@ function App() {
     try {
       setLoading(true);
       const response = await fetch(
-        `http://localhost:3001/v1/api/addToDeletedInventory/${id}`,
+        `v1/api/addToDeletedInventory/${id}`,
         {
           method: "PUT",
           body: JSON.stringify({
@@ -92,7 +92,7 @@ function App() {
     try {
       setLoading(true);
       const response = await fetch(
-        `http://localhost:3001/v1/api/restore/${id}`,
+        `v1/api/restore/${id}`,
         {
           method: "PUT",
         },
