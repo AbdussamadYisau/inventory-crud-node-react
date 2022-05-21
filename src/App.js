@@ -13,13 +13,26 @@ function App() {
   const [restore, setRestore] = React.useState("");
   const [loading, setLoading] = React.useState(false);
   const [modalOpen, setIsOpen] = React.useState(false);
-
+  const [editModalOpen, setEditModalOpen] = React.useState(false);
+  const [editId, setEditId] = React.useState(null);
+  const [editName, setEditName] = React.useState(null);
+  const [editDescription, setEditDescription] = React.useState(null);
+  const [editPrice, setEditPrice] = React.useState(null);
+  const [editQuantity, setEditQuantity] = React.useState(null);
   const showModal = () => {
     setIsOpen(true);
   };
 
+  const showEditModal = () => {
+    setEditModalOpen(true);
+  };
+
   const hideModal = () => {
     setIsOpen(false);
+  };
+
+  const hideEditModal = () => {
+    setEditModalOpen(false);
   };
 
   const numberWithCommas = (x) => {
@@ -297,6 +310,147 @@ function App() {
         </Modal>
       )}
 
+      {editModalOpen && (
+        <Modal handleClose={hideEditModal} title="Edit An Inventory">
+          <Formik
+        initialValues={{ name: `${editName}`, description: `${editDescription}`, price: `${editPrice}`, quantity: `${editQuantity}`}}
+        validate={values => {
+          const errors = {};
+          if (!values.name) {
+            errors.name = 'Required';
+          } else if (
+            !values.description
+          ) {
+            errors.description = `Description can't be blank`;
+          } else if (
+            values.price === 0
+          ) {
+           errors.price =`Price can't be 0`;
+          } else if (values.quantity === 0) {
+            errors.quantity = `Quantity can't be 0`;
+          }
+          return errors;
+        }
+
+
+      }
+        onSubmit={ async (values, { setSubmitting }) => {
+          try {
+            setLoading(true);
+            const response = await fetch(
+              `v1/api/inventory/${editId}`,
+              {
+                method: "PUT",
+                body: JSON.stringify({
+                  name: `${values?.name}`,
+                  description: `${values?.description}`,
+                  price: `${values?.price}`,
+                  quantity: `${values?.quantity}`,
+                }),
+                headers: {
+                  "Content-Type": "application/json",
+                },
+              },
+              {
+                mode: "cors",
+              }
+            );
+            const data = await response.json();
+            toast.success(data?.message, {
+              position: "top-right",
+              autoClose: 3000,
+              hideProgressBar: false,
+              closeOnClick: true,
+              pauseOnHover: true,
+              draggable: true,
+              progress: undefined,
+            });
+            setLoading(false);
+            setSubmitting(false);
+            hideEditModal();
+          } catch (err) {
+            console.error(err.message);
+            toast.error(err?.message, {
+              position: "top-right",
+              autoClose: 3000,
+              hideProgressBar: false,
+              closeOnClick: true,
+              pauseOnHover: true,
+              draggable: true,
+              progress: undefined,
+            });
+            hideEditModal();
+
+          }
+        }}
+      >
+        {({
+          values,
+          errors,
+          touched,
+          handleChange,
+          handleBlur,
+          handleSubmit,
+          isSubmitting,
+          /* and other goodies */
+        }) => (
+          <form style={{
+            'display':'flex',
+            'flexDirection': 'column'
+          }} onSubmit={handleSubmit}>
+            <label>Name: </label>
+            <input
+              type="text"
+              name="name"
+              onChange={handleChange}
+              onBlur={handleBlur}
+              value={values.name}
+            />
+            {errors.name && touched.name && errors.name}
+
+            <label style={{marginTop: '10px'}} >Description: </label>
+            <input
+
+              type="text"
+              name="description"
+              onChange={handleChange}
+              onBlur={handleBlur}
+              value={values.description}
+            />
+            {errors.description && touched.description && errors.description}
+
+            <label style={{marginTop: '10px'}}>Price: </label>
+            <input
+
+              type="number"
+              name="price"
+              onChange={handleChange}
+              onBlur={handleBlur}
+              value={values.price}
+            />
+            {errors.price && touched.price && errors.price}
+
+            <label style={{marginTop: '10px'}}>Quantity: </label>
+            <input
+
+              type="number"
+              name="quantity"
+              onChange={handleChange}
+              onBlur={handleBlur}
+              value={values.quantity}
+            />
+            {errors.quantity && touched.quantity && errors.quantity}
+
+            <button style={{marginTop: '10px'}} type="submit" disabled={isSubmitting}>
+              Submit
+            </button>
+          </form>
+        )}
+      </Formik>
+
+        </Modal>
+      )}
+
       <div className="App">
         <ToastContainer />;
         <div className="Column">
@@ -334,7 +488,14 @@ function App() {
 
                         <div className="Column">
                           <button
-                            onClick={() => console.log("Hi")}
+                            onClick={() => {
+                              setEditId(item._id);
+                              setEditName(item.name);
+                              setEditDescription(item.description);
+                              setEditPrice(item.price);
+                              setEditQuantity(item.quantity);
+                              showEditModal();
+                            }}
                             style={{ marginRight: "10px" }}
                           >
                             Edit
