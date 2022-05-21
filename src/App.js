@@ -14,17 +14,25 @@ function App() {
   const [loading, setLoading] = React.useState(false);
   const [modalOpen, setIsOpen] = React.useState(false);
   const [editModalOpen, setEditModalOpen] = React.useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = React.useState(false);
   const [editId, setEditId] = React.useState(null);
+  const [deleteId, setDeleteId] = React.useState(null);
   const [editName, setEditName] = React.useState(null);
   const [editDescription, setEditDescription] = React.useState(null);
   const [editPrice, setEditPrice] = React.useState(null);
   const [editQuantity, setEditQuantity] = React.useState(null);
+  const [deleteForm, setDeleteForm] = React.useState(false);
   const showModal = () => {
+
     setIsOpen(true);
   };
 
   const showEditModal = () => {
     setEditModalOpen(true);
+  };
+
+  const showDeleteModal = () => {
+    setDeleteModalOpen(true);
   };
 
   const hideModal = () => {
@@ -33,6 +41,10 @@ function App() {
 
   const hideEditModal = () => {
     setEditModalOpen(false);
+  };
+
+  const hideDeleteModal = () => {
+    setDeleteModalOpen(false);
   };
 
   const numberWithCommas = (x) => {
@@ -86,43 +98,6 @@ function App() {
     getDeletedInventory();
   }, [deleted, restore, loading]);
 
-
-  const handleDelete = async (id) => {
-    try {
-      setLoading(true);
-      const response = await fetch(
-        `v1/api/addToDeletedInventory/${id}`,
-        {
-          method: "PUT",
-          body: JSON.stringify({
-            category: "Deleted",
-          }),
-          headers: {
-            "Content-Type": "application/json",
-          },
-        },
-        {
-          mode: "cors",
-        }
-      );
-      const data = await response.json();
-      toast.success(data.message, {
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-      });
-
-      setDeleted(data.message);
-
-      setLoading(false);
-    } catch (err) {
-      console.error(err.message);
-    }
-  };
 
   const handleRestore = async (id) => {
     try {
@@ -227,8 +202,9 @@ function App() {
             progress: undefined,
           });
           setLoading(false);
+          setDeleted(data.message);
           setSubmitting(false);
-          hideModal();
+          hideDeleteModal();
         } catch (err) {
           console.error(err.message);
           toast.error(err?.message, {
@@ -240,7 +216,7 @@ function App() {
             draggable: true,
             progress: undefined,
           });
-          hideModal();
+          hideDeleteModal();
 
         }
        }}
@@ -323,10 +299,10 @@ function App() {
           ) {
             errors.description = `Description can't be blank`;
           } else if (
-            values.price === 0
+            values.price === 0 || values.price === '' || !values.price
           ) {
            errors.price =`Price can't be 0`;
-          } else if (values.quantity === 0) {
+          } else if (values.quantity === 0 || values.quantity === '' || !values.quantity) {
             errors.quantity = `Quantity can't be 0`;
           }
           return errors;
@@ -451,6 +427,120 @@ function App() {
         </Modal>
       )}
 
+      {deleteModalOpen && (
+        <Modal handleClose={hideDeleteModal} title="Delete An Inventory">
+          <p>Are you sure you want to delete this inventory?</p>
+
+          {!deleteForm && (
+          <div style={{
+            display: 'flex',
+            justifyContent: 'flex-end',
+          }}>
+          <button style={{
+            marginRight: '10px',
+          }} onClick={() => {
+                setDeleteForm(true)
+          }}>Yes</button>
+
+          <button onClick={hideDeleteModal}>No</button>
+          </div>
+          )}
+          {deleteForm && (  
+          <Formik 
+            initialValues={{ deleteComment: ``}}
+            validate={values => {
+              const errors = {};
+              if (!values.deleteComment) {
+                errors.deleteComment = 'Required';
+              } 
+              return errors;
+            }}
+            onSubmit={ async (values, { setSubmitting }) => {
+              try {
+                setLoading(true);
+                const response = await fetch(
+                  `v1/api/addToDeletedInventory/${deleteId}`,
+                  {
+                    method: "PUT",
+                    body: JSON.stringify({
+                      category: "Deleted",
+                      deleteComment: `${values?.deleteComment}`,
+                    }),
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                  },
+                  {
+                    mode: "cors",
+                  }
+                );
+                const data = await response.json();
+                toast.success(data.message, {
+                  position: "top-right",
+                  autoClose: 3000,
+                  hideProgressBar: false,
+                  closeOnClick: true,
+                  pauseOnHover: true,
+                  draggable: true,
+                  progress: undefined,
+                });
+          
+                setDeleted(data.message);
+          
+                setLoading(false);
+                hideDeleteModal();
+              } catch (err) {
+                console.error(err.message);
+                toast.error(err?.message, {
+                  position: "top-right",
+                  autoClose: 3000,
+                  hideProgressBar: false,
+                  closeOnClick: true,
+                  pauseOnHover: true,
+                  draggable: true,
+                  progress: undefined,  
+                });
+                hideDeleteModal();
+              }
+            }}
+          >
+            {({
+              values,
+              errors,
+              touched,
+              handleChange,
+              handleBlur,
+              handleSubmit,
+              isSubmitting,
+              /* and other goodies */
+            }) => (
+              <form style={{
+                'display':'flex',
+                'flexDirection': 'column'
+              }} onSubmit={handleSubmit}>
+                <label>Delete Comment: </label>
+                <input
+                  type="text"
+                  name="deleteComment"
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  value={values.deleteComment}
+                />
+                {errors.deleteComment && touched.deleteComment && errors.deleteComment}
+                <button style={{marginTop: '10px'}} type="submit" disabled={isSubmitting}>
+                  Submit
+                </button>
+              </form>
+            )}
+          </Formik>
+          )}
+
+          
+        </Modal>
+      )}
+
+
+
       <div className="App">
         <ToastContainer />;
         <div className="Column">
@@ -500,7 +590,12 @@ function App() {
                           >
                             Edit
                           </button>
-                          <button onClick={() => handleDelete(item._id)}>
+                          <button onClick={() => {
+                            setDeleteId(item._id);
+                            showDeleteModal();
+                          }
+                            
+                            }>
                             Delete
                           </button>
                         </div>
